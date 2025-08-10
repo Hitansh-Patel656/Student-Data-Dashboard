@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Dashboard</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+        font-weight: 300;
+      }
+
+      .header p {
+        opacity: 0.9;
+        font-size: 1.1em;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        padding: 30px;
+        background: #f8fafc;
+      }
+
+      .stat-card {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        transform: translateY(0);
+        transition: all 0.3s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      }
+
+      .stat-card .icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        margin: 0 auto 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+      }
+
+      .stat-card.total .icon {
+        background-color: #3b82f6;
+      }
+      .stat-card.avg-gpa .icon {
+        background-color: #f97316;
+      }
+      .stat-card.branches .icon {
+        background-color: #10b981;
+      }
+      .stat-card.active .icon {
+        background-color: #6366f1;
+      }
+
+      .stat-card h3 {
+        font-size: 2em;
+        color: #2d3748;
+        margin-bottom: 5px;
+      }
+
+      .stat-card p {
+        color: #718096;
+        font-weight: 500;
+      }
+
+      .controls {
+        padding: 30px;
+        background: white;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .upload-area {
+        border: 2px dashed #cbd5e0;
+        border-radius: 15px;
+        padding: 40px;
+        text-align: center;
+        background: #f7fafc;
+        margin-bottom: 30px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .upload-area:hover {
+        border-color: #4e54c8;
+        background: #edf2f7;
+      }
+
+      .upload-area.dragover {
+        border-color: #4e54c8;
+        background: #e6eefb;
+      }
+
+      .upload-icon {
+        font-size: 48px;
+        color: #cbd5e0;
+        margin-bottom: 15px;
+      }
+
+      .search-filter-row {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        gap: 20px;
+        align-items: center;
+      }
+
+      .search-box {
+        position: relative;
+      }
+
+      .search-box input {
+        width: 100%;
+        padding: 12px 45px 12px 15px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+      }
+
+      .search-box input:focus {
+        outline: none;
+        border-color: #4e54c8;
+        box-shadow: 0 0 0 3px rgba(78, 84, 200, 0.1);
+      }
+
+      .search-icon {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #a0aec0;
+      }
+
+      .filters {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+        padding: 20px;
+        background: #f7fafc;
+        border-radius: 10px;
+      }
+
+      .filters select {
+        padding: 10px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        background: white;
+      }
+
+      .view-modes {
+        display: flex;
+        background: #f1f5f9;
+        border-radius: 10px;
+        padding: 5px;
+      }
+
+      .view-mode {
+        padding: 10px 20px;
+        border: none;
+        background: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+      }
+
+      .view-mode.active {
+        background: #4e54c8;
+        color: white;
+        box-shadow: 0 2px 8px rgba(78, 84, 200, 0.3);
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn-primary {
+        background: #4e54c8;
+        color: white;
+      }
+
+      .btn-success {
+        background: #10b981;
+        color: white;
+      }
+
+      .btn-info {
+        background: #3b82f6;
+        color: white;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .content {
+        padding: 30px;
+      }
+
+      /* Table Styles */
+      .table-container {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      th {
+        background: #f8fafc;
+        font-weight: 600;
+        color: #2d3748;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      th:hover {
+        background: #edf2f7;
+      }
+
+      .sort-indicator {
+        margin-left: 5px;
+        color: #4e54c8;
+      }
+
+      tr:hover {
+        background: #f7fafc;
+      }
+
+      .selected-row {
+        background: #e6eefb !important;
+      }
+
+      /* Card Styles */
+      .cards-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 25px;
+      }
+
+      .student-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+      }
+
+      .student-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      }
+
+      .student-card.selected {
+        border-color: #4e54c8;
+        transform: translateY(-5px);
+      }
+
+      .student-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #4e54c8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 15px;
+      }
+
+      .student-name {
+        font-size: 1.2em;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 5px;
+      }
+
+      .student-branch {
+        color: #4e54c8;
+        font-weight: 500;
+        margin-bottom: 15px;
+      }
+
+      .student-details {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 0.9em;
+        color: #4a5568;
+      }
+
+      .gpa-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8em;
+        font-weight: 600;
+        display: inline-block;
+      }
+
+      .gpa-excellent {
+        background: #d1fae5;
+        color: #065f46;
+      }
+
+      .gpa-good {
+        background: #fef3c7;
+        color: #92400e;
+      }
+
+      .gpa-needs-improvement {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+
+      /* Analytics Styles */
+      .analytics-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 30px;
+      }
+
+      .chart-container {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+      }
+
+      .chart-title {
+        font-size: 1.2em;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 20px;
+      }
+
+      .chart {
+        width: 100%;
+        height: 300px;
+      }
+
+      /* Modal Styles */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .modal-overlay.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      #profileModal {
+        z-index: 1002;
+      }
+      #addStudentModal {
+        z-index: 1002;
+      }
+      #incorrectEntriesModal {
+        z-index: 1001;
+      }
+
+      .modal {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        width: 90%;
+        max-width: 500px;
+        transform: translateY(-20px);
+        transition: transform 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        max-height: 90vh;
+      }
+      .modal.wide {
+        max-width: 800px;
+      }
+
+      .modal-overlay.show .modal {
+        transform: translateY(0);
+      }
+
+      .modal-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 25px;
+      }
+
+      .modal-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: #3b82f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+      }
+      .modal-icon.warning {
+        background: #f97316;
+      }
+      .modal-icon.add-student {
+        background-color: #10b981;
+      }
+
+      .modal-title {
+        font-size: 1.4em;
+        font-weight: 600;
+        color: #2d3748;
+      }
+
+      .modal-body {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding-right: 10px;
+      }
+
+      .modal-body ul {
+        margin-left: 20px;
+      }
+      .modal-body li {
+        margin-bottom: 5px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #2d3748;
+      }
+
+      .form-group input,
+      .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+      }
+      .form-group input.error {
+        border-color: #ef4444;
+      }
+
+      .error-message {
+        color: #ef4444;
+        font-size: 0.9em;
+        margin-top: 5px;
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+        margin-top: 30px;
+      }
+
+      .loading {
+        display: none;
+        text-align: center;
+        padding: 40px;
+      }
+
+      .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid #e2e8f0;
+        border-top: 4px solid #4e54c8;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .no-data {
+        display: none;
+        text-align: center;
+        padding: 60px 20px;
+        color: #718096;
+      }
+
+      .no-data-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+        color: #cbd5e0;
+      }
+
+      .highlight {
+        background: #fef9e7;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-weight: 500;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .validation-summary {
+        background: #fffbeb;
+        border: 1px solid #fcd34d;
+        color: #92400e;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        display: none;
+        text-align: center;
+      }
+
+      .validation-summary p {
+        margin: 0;
+      }
+
+      .validation-summary button {
+        margin-left: 10px;
+        background: transparent;
+        border: none;
+        color: #92400e;
+        text-decoration: underline;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      @media (max-width: 768px) {
+        .search-filter-row {
+          grid-template-columns: 1fr;
+          gap: 15px;
+        }
+
+        .action-buttons {
+          justify-content: center;
+        }
+
+        .cards-container {
+          grid-template-columns: 1fr;
+        }
+
+        .analytics-container {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🎓 Student Dashboard</h1>
+        <p>Interactive Data Management System</p>
+      </div>
+
+      <div class="stats-grid" id="statsGrid" style="display: none">
+        <div class="stat-card total">
+          <div class="icon">👥</div>
+          <h3 id="totalStudents">0</h3>
+          <p>Total Students</p>
+        </div>
+        <div class="stat-card avg-gpa">
+          <div class="icon">📊</div>
+          <h3 id="avgGPA">0.0</h3>
+          <p>Average GPA</p>
+        </div>
+        <div class="stat-card branches">
+          <div class="icon">🏛️</div>
+          <h3 id="totalBranches">0</h3>
+          <p>Branches</p>
+        </div>
+        <div class="stat-card active">
+          <div class="icon">⭐</div>
+          <h3 id="activeStudents">0</h3>
+          <p>Active Students</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="upload-area" id="uploadArea">
+          <div class="upload-icon">📁</div>
+          <h3>Drop your Excel file here or click to upload</h3>
+          <p>Supports .xlsx and .xls files</p>
+          <input
+            type="file"
+            id="fileInput"
+            accept=".xlsx,.xls"
+            style="display: none"
+          />
+        </div>
+
+        <div
+          id="addFileBtnContainer"
+          class="hidden"
+          style="text-align: center; margin-bottom: 30px"
+        >
+          <button class="btn btn-primary" id="addFileBtn">
+            📁 Add New File
+          </button>
+        </div>
+
+        <div class="validation-summary" id="validationSummary">
+          <p>
+            File processed! <span id="correctEntriesCount">0</span> correct
+            entries and <span id="incorrectEntriesCount">0</span> incorrect
+            entries found. <button id="viewIncorrectBtn">View Incorrect</button>
+          </p>
+        </div>
+
+        <div
+          class="search-filter-row"
+          id="searchControls"
+          style="display: none"
+        >
+          <div class="search-box">
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Search students..."
+            />
+            <span class="search-icon">🔍</span>
+          </div>
+
+          <div class="view-modes">
+            <button class="view-mode active" data-view="table">📋 Table</button>
+            <button class="view-mode" data-view="cards">🃏 Cards</button>
+            <button class="view-mode" data-view="analytics">
+              📊 Analytics
+            </button>
+          </div>
+
+          <div class="action-buttons">
+            <button class="btn btn-primary" id="selectAllBtn">
+              👥 Select All
+            </button>
+            <button class="btn btn-primary" id="addStudentBtn">
+              ➕ Add Student
+            </button>
+            <button class="btn btn-success" id="emailBtn" disabled>
+              ✉️ Email (<span id="selectedCount">0</span>)
+            </button>
+            <button class="btn btn-info" id="exportBtn">💾 Export</button>
+          </div>
+        </div>
+
+        <div class="filters" id="filtersRow" style="display: none">
+          <select id="branchFilter">
+            <option value="">All Branches</option>
+          </select>
+          <select id="yearFilter">
+            <option value="">All Years</option>
+          </select>
+          <button class="btn" id="clearFiltersBtn">🗑️ Clear Filters</button>
+        </div>
+      </div>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Loading and processing student data...</p>
+      </div>
+
+      <div class="content">
+        <div id="tableView" class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="selectAllCheckbox" /></th>
+                <th data-sort="name">
+                  Name <span class="sort-indicator"></span>
+                </th>
+                <th data-sort="branch">
+                  Branch <span class="sort-indicator"></span>
+                </th>
+                <th data-sort="year">
+                  Year <span class="sort-indicator"></span>
+                </th>
+                <th data-sort="email">
+                  Email <span class="sort-indicator"></span>
+                </th>
+                <th data-sort="gpa">
+                  GPA <span class="sort-indicator"></span>
+                </th>
+              </tr>
+            </thead>
+            <tbody id="studentTableBody"></tbody>
+          </table>
+        </div>
+
+        <div id="cardsView" class="cards-container hidden"></div>
+
+        <div id="analyticsView" class="analytics-container hidden">
+          <div class="chart-container">
+            <h3 class="chart-title">Students by Branch</h3>
+            <canvas id="branchChart" class="chart"></canvas>
+          </div>
+          <div class="chart-container">
+            <h3 class="chart-title">GPA Distribution</h3>
+            <canvas id="gpaChart" class="chart"></canvas>
+          </div>
+          <div class="chart-container">
+            <h3 class="chart-title">Students by Year</h3>
+            <canvas id="yearChart" class="chart"></canvas>
+          </div>
+        </div>
+
+        <div class="no-data" id="noData">
+          <div class="no-data-icon">📚</div>
+          <h2>No Student Data</h2>
+          <p>Upload an Excel file to get started with your student dashboard</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="profileModal">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-icon">👤</div>
+          <div>
+            <div class="modal-title">Student Profile</div>
+            <p>Edit student details</p>
+          </div>
+        </div>
+        <form id="profileForm" class="modal-body">
+          <input type="hidden" id="profileStudentId" />
+          <div class="form-group">
+            <label for="profileName">Name</label>
+            <input type="text" id="profileName" required />
+          </div>
+          <div class="form-group">
+            <label for="profileBranch">Branch</label>
+            <input type="text" id="profileBranch" required />
+          </div>
+          <div class="form-group">
+            <label for="profileYear">Year</label>
+            <input type="number" id="profileYear" required />
+          </div>
+          <div class="form-group">
+            <label for="profileEmail">Email</label>
+            <input type="email" id="profileEmail" required />
+          </div>
+          <div class="form-group">
+            <label for="profileGPA">GPA</label>
+            <input type="number" step="0.01" id="profileGPA" required />
+          </div>
+          <div class="form-group">
+            <label for="profileInterests">Interests</label>
+            <textarea
+              id="profileInterests"
+              rows="3"
+              placeholder="e.g., Web Dev, AI/ML, Cloud"
+            ></textarea>
+          </div>
+        </form>
+        <div class="modal-actions">
+          <button class="btn" id="cancelProfileBtn">Cancel</button>
+          <button class="btn btn-success" id="saveProfileBtn">
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="addStudentModal">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-icon add-student">➕</div>
+          <div>
+            <div class="modal-title">Add New Student</div>
+            <p>Fill in the details to add a new student</p>
+          </div>
+        </div>
+        <form id="newStudentForm" class="modal-body">
+          <div class="form-group">
+            <label for="newStudentName">Name</label>
+            <input type="text" id="newStudentName" required />
+          </div>
+          <div class="form-group">
+            <label for="newStudentBranch">Branch</label>
+            <input type="text" id="newStudentBranch" required />
+          </div>
+          <div class="form-group">
+            <label for="newStudentYear">Year</label>
+            <input type="number" id="newStudentYear" required />
+          </div>
+          <div class="form-group">
+            <label for="newStudentEmail">Email</label>
+            <input type="email" id="newStudentEmail" required />
+          </div>
+          <div class="form-group">
+            <label for="newStudentGPA">GPA</label>
+            <input type="number" step="0.01" id="newStudentGPA" required />
+          </div>
+          <div class="form-group">
+            <label for="newStudentInterests">Interests</label>
+            <textarea
+              id="newStudentInterests"
+              rows="3"
+              placeholder="e.g., Web Dev, AI/ML, Cloud"
+            ></textarea>
+          </div>
+        </form>
+        <div class="modal-actions">
+          <button class="btn" id="cancelAddStudentBtn">Cancel</button>
+          <button class="btn btn-success" id="saveNewStudentBtn">
+            Add Student
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="incorrectEntriesModal">
+      <div class="modal wide">
+        <div class="modal-header">
+          <div class="modal-icon warning">⚠️</div>
+          <div>
+            <div class="modal-title">Incorrect Entries</div>
+            <p>Review and correct the invalid student data</p>
+          </div>
+        </div>
+        <div id="incorrectEntriesList" class="modal-body"></div>
+        <div class="modal-actions">
+          <button class="btn" id="closeIncorrectEntriesBtn">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="emailModal">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-icon">✉️</div>
+          <div>
+            <div class="modal-title">Send Email</div>
+            <p>to <span id="emailRecipientCount">0</span> selected students</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="emailSubject">Subject</label>
+          <input type="text" id="emailSubject" placeholder="Email subject" />
+        </div>
+
+        <div class="form-group">
+          <label for="emailMessage">Message</label>
+          <textarea
+            id="emailMessage"
+            rows="6"
+            placeholder="Your message here..."
+          ></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn" id="cancelEmailBtn">Cancel</button>
+          <button class="btn btn-success" id="sendEmailBtn">Send Email</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="home.js"></script>
+  </body>
+</html>
